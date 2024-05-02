@@ -30,19 +30,20 @@ app.get("/", (req, res) => {
 });
 
 app.get("/feedback", async (req, res) => {
-  const { email, value } = req.query;
+  const { template, email, value } = req.query;
+  const availableTemplates = ["time-improve", "aborded-improve"];
+  const templateIsValid = availableTemplates.includes(template);
   const emailRegex = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/;
   const emailIsValid = emailRegex.test(email);
   const valueIsValid = ["true", "false"].includes(value.toLowerCase());
   const bitValue = value.toLowerCase() === "true" ? 1 : 0;
-  res.status(200).send();
-  if (emailIsValid && valueIsValid) {
-    console.log("start");
-    const result = await client.query(
-      "INSERT INTO feedback(email, value) VALUES($1, $2)",
-      [email, bitValue]
-    );
-    console.log(result.rows);
+  res.status(200).send("<h1>Gracias por tu opinión</h1>");
+  if (templateIsValid && emailIsValid && valueIsValid) {
+    await client.query("INSERT INTO feedback(template, email, value) VALUES($1, $2, $3)", [
+      template,
+      email,
+      bitValue,
+    ]);
   }
 });
 

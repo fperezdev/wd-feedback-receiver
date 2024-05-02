@@ -37,7 +37,7 @@ app.get("/feedback", async (req, res) => {
   const emailIsValid = emailRegex.test(email);
   const valueIsValid = ["true", "false"].includes(value.toLowerCase());
   const bitValue = value.toLowerCase() === "true" ? 1 : 0;
-  res.status(200).send("<h1>Gracias por tu opinión</h1>");
+  res.status(200).send("<h1>Gracias por tu opinión</h1><br /><h3>Puedes cerrar esta pestaña</h3>");
   if (templateIsValid && emailIsValid && valueIsValid) {
     await client.query("INSERT INTO feedback(template, email, value) VALUES($1, $2, $3)", [
       template,

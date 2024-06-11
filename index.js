@@ -17,33 +17,29 @@ client.connect();
 const app = express();
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  limit: 20, // Limit each IP to 100 requests per `window` (here, per 15 minutes).
+  limit: 20, // Limit each IP to 20 requests per `window` (here, per 15 minutes).
   standardHeaders: "draft-7", // draft-6: `RateLimit-*` headers; draft-7: combined `RateLimit` header
   legacyHeaders: false, // Disable the `X-RateLimit-*` headers.
 });
 app.use(limiter);
 app.set("trust proxy", Number(process.env.PROXY_NUMBER)); // For Railway proxy
 app.use(json());
-
-app.get("/", (req, res) => {
-  return res.status(200).send({ msg: "Hola mundo" });
-});
+app.use(express.static("public"));
 
 app.get("/feedback", async (req, res) => {
+  res.status(200).send({ message: "Gracias por tu opinión" });
   const { template, email, value } = req.query;
-  const availableTemplates = ["time-improve", "aborded-improve"];
+  const availableTemplates = ["time-improve", "aborded-improve", "invalid"];
   const templateIsValid = availableTemplates.includes(template);
   const emailRegex = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/;
-  const emailIsValid = emailRegex.test(email);
-  const valueIsValid = ["true", "false"].includes(value.toLowerCase());
-  const bitValue = value.toLowerCase() === "true" ? 1 : 0;
-  res.status(200).send("<h1>Gracias por tu opinión</h1><br /><h3>Puedes cerrar esta pestaña</h3>");
+  const emailIsValid = emailRegex.test(email) || email === "null";
+  const bitValue = value === "0" ? 0 : value === "1" ? 1 : -1;
+  const valueIsValid = value !== -1;
   if (templateIsValid && emailIsValid && valueIsValid) {
-    await client.query("INSERT INTO feedback(template, email, value) VALUES($1, $2, $3)", [
-      template,
-      email,
-      bitValue,
-    ]);
+    await client.query(
+      "INSERT INTO feedback(template, email, value) VALUES($1, $2, $3)",
+      [template, email, bitValue]
+    );
   }
 });
 
